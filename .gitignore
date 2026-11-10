@@ -1,0 +1,12 @@
+# Source data - download it with the links in the README, don't commit it
+data/raw/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Editors
+.spyproject/
+.vscode/
+.idea/
