@@ -1,5 +1,5 @@
 """
-Makes the three charts used in the README.
+Makes the four charts used in the README.
 Run build_dataset.py and analyse.py first.
 """
 import pathlib
@@ -115,12 +115,43 @@ def fig3_who_is_served(am):
     return len(more_peds), top
 
 
+def fig4_cost_of_waiting(am):
+    """What the pedestrian floor costs drivers. A spread again, so a histogram."""
+    d = am[am.delay.notna()].copy()
+    d["cost"] = d.delay - d.delay_webster
+
+    fig, ax = plt.subplots(figsize=(8, 4.2))
+    ax.hist(d.cost, bins=40, color=BLUE, edgecolor=SURFACE, linewidth=0.5)
+    med = d.cost.median()
+    top = ax.get_ylim()[1]
+    ax.axvline(0, color=GREY, linewidth=1.4, linestyle=(0, (4, 3)))
+    ax.annotate(f"  {(d.cost < -0.01).sum()} intersections\n  "
+                f"are better for drivers\n  at the longer cycle",
+                xy=(ax.get_xlim()[0] * 0.95, top * 0.55),
+                color=MUTED, fontsize=8.5)
+    ax.axvline(med, color=RED, linewidth=2)
+    ax.annotate(f"median  +{med:.1f} s per vehicle",
+                xy=(med + 0.06, top * 0.88),
+                color=RED, fontsize=9.5, fontweight="bold")
+    ax.set_xlabel("extra delay per vehicle, compared with timing the signal "
+                  "for cars alone (seconds)")
+    ax.set_ylabel("intersections")
+    ax.set_title("Timing for people on foot barely changes what drivers wait",
+                 loc="left", fontweight="bold")
+    style(ax)
+    fig.tight_layout(); fig.savefig(FIG / "4_cost_of_waiting.png", dpi=170)
+    return med, d.cost.max()
+
+
 if __name__ == "__main__":
     am = load()
     fig1_distribution(am)
     fig2_map(am)
     n, top = fig3_who_is_served(am)
-    print(f"wrote 3 figures to {FIG}")
+    med, worst = fig4_cost_of_waiting(am)
+    print(f"wrote 4 figures to {FIG}")
     print(f"  intersections with more pedestrians than vehicles: {n}")
     print(f"  busiest on foot: {top.location_name} "
           f"({top.total_peds_14h:,.0f} peds vs {top.total_vehicle_14h:,.0f} veh)")
+    print(f"  cost of the pedestrian floor: {med:.1f} s/veh median, "
+          f"{worst:.1f} s worst")
